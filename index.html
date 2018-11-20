@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <style>
+      label {
+        font-weight: bold;
+      }
+      .tier {
+        margin-bottom: 1em;
+      }
+    </style>
+    <title>Tier info generator</title>
+  </head>
+  <body>
+    <br>
+    <!-- "Aftercare Pack" => [Tier.new(50, 21.0227273), Tier.new(25, 19.88636364), Tier.new(15, 15.90909091), Tier.new(8, 11.36363636), Tier.new(1,0)], -->
+    <div class="container">
+      <h1>Tier info generator</h1>
+      <label>Product SKU</label><br>
+      <input type="text" id="productsku" autofocus="autofocus" />
+      <br><br>
+      <label>Tier Info</label><br>
+      <span>From highest quantity to lowest</span><br><br>
+      <div id="tier-container">
+        <div class="row tier">
+          <div class="col-sm">
+            Quantity :<br>
+            <input type="number" class="quantity" step="any" placeholder="10" />
+            <span> </span>
+          </div>
+          <div class="col-sm">
+            Percentage : <br>
+            <input type="number" class="percentage" step="any" placeholder="21.02" />
+          </div>
+        </div>
+        <div class="row tier">
+          <div class="col-sm">
+            Quantity :<br>
+            <input type="number" class="quantity" step="any" placeholder="10"/>
+          </div>
+          <div class="col-sm">
+            Percentage : <br>
+            <input type="number" class="percentage" step="any" placeholder="21.02"/>
+            <span style="font-size: 0.9em; color: #777; display:none;">Press Enter after typing to add more tier</span>
+          </div>
+        </div>
+      </div>
+      <br>
+      <button class="btn btn-primary" id="generate">Generate code</button>
+      <br><br>
+      <textarea id="output" class="form-control">
+      </textarea>
+    </div>
+    
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+    <script>
+      $('#tier-container').on('keyup', '.percentage:last', function(e) {
+        //do something
+        console.log("keyup!");
+        $('.percentage:last').next("span").css("display", "block");
+
+        var code = e.keyCode || e.which;
+        if(code != '13'){
+          return;
+        }
+
+        $('.percentage:last').next("span").css("display", "none");
+
+        $('#tier-container').append('<div class="row tier">' +
+          '<div class="col-sm">' +
+            'Quantity :<br>' +
+            '<input type="number" class="quantity" step="any" placeholder="10"/>' +
+            '<span> </span>' +
+          '</div>' +
+          '<div class="col-sm">' +
+            'Percentage : <br>' +
+            '<input type="number" class="percentage" step="any" placeholder="21.02"/>' +
+            '<span style="font-size: 0.9em; color: #777; display:none;">Press Enter after typing to add more tier</span>' +
+          '</div>' +
+        '</div>');
+      });
+
+      $('#generate').click(function(){
+        var sku = $('#productsku').val();
+
+        if(sku.length == 0){
+          alert("SKU can't be blank");
+          return;
+        }
+
+        var quantities = $(".quantity").map(function() {
+           return parseInt($(this).val());
+        }).get();
+
+        var percentages = $(".percentage").map(function() {
+           return parseFloat($(this).val());
+        }).get();
+
+        var tiers = []
+        // quantities.forEach((key, i) => tiers[key] = percentages[i]);
+        quantities.forEach(function(key, i) {
+          if(!isNaN(quantities[i]) && !isNaN(percentages[i])){
+            tiers.push({quantity: quantities[i], percentage: percentages[i]})
+          }
+        });
+
+        function reverseCompare(a,b) {
+          if (a.quantity < b.quantity)
+            return 1;
+          if (a.quantity > b.quantity)
+            return -1;
+          return 0;
+        }
+
+        tiers.sort(reverseCompare);
+        console.log(tiers);
+
+        var outputText = '"'+ sku + '" => [';
+        tiers.forEach(function(tier){
+          outputText += 'Tier.new('+ tier.quantity +', ' + tier.percentage + '), ';
+        });
+
+        outputText += 'Tier.new(1, 0)],'
+
+        $('#output').html(outputText);
+      });
+    </script>
+  </body>
+</html>
